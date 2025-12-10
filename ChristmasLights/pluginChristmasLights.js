@@ -41,6 +41,7 @@ if (CHRISTMAS_LIGHTS) {
             transform: translateX(-50%);
             opacity: 0.5;
             transition: opacity 0.25s, filter 0.25s;
+            box-shadow: 0 0 16px rgba(255,255,180,0.3), 0 0 18px rgba(255,255,180,0.5);
         }
         .xmas-bulb.on {
             opacity: 0.8;
