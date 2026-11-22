@@ -9,6 +9,8 @@ if (CHRISTMAS_LIGHTS) {
     const TARGET_SELECTOR = ".wrapper-outer.dashboard-panel";
     const NUM_LIGHTS = parseInt(window.innerWidth / 64);
     const COLORS = ["#ff4040", "#40ff40", "#40b9ff", "#ffff66", "#ff80ff"];
+    const STORAGE_KEY = "christmasLightsVisible";
+    const HIDDEN_HOVER_OPACITY = 0.35;
 
     function ready(fn) {
         if (document.readyState !== "loading") fn();
@@ -48,9 +50,11 @@ if (CHRISTMAS_LIGHTS) {
             filter: brightness(1.1);
             box-shadow: 0 0 16px rgba(255,255,180,0.8), 0 0 18px rgba(255,255,180,0.5);
         }
-        .hidden {
+        .xmas-lights-container.xmas-lights-hidden {
             opacity: 0;
-            pointer-events: none;
+        }
+        .xmas-lights-container.xmas-lights-hidden.xmas-lights-peek {
+            opacity: ${HIDDEN_HOVER_OPACITY};
         }
         `;
         const style = document.createElement("style");
@@ -59,8 +63,12 @@ if (CHRISTMAS_LIGHTS) {
 
         target.style.position = "relative";
 
+        let isVisible = true;
+        try { isVisible = localStorage.getItem(STORAGE_KEY) !== "0"; } catch (e) {}
+
         const container = document.createElement("div");
         container.className = "xmas-lights-container";
+        container.classList.toggle("xmas-lights-hidden", !isVisible);
         target.prepend(container);
 
         // Create SVG for wire
@@ -122,19 +130,26 @@ if (CHRISTMAS_LIGHTS) {
         }
 
         // Toggle visibility of lights and wire
-        let isVisible = true;
         const containerHeight = 18;
 
-        target.addEventListener("click", function (event) {
+        function inLightsArea(event) {
             const mouseY = event.clientY - target.getBoundingClientRect().top;
-            if (mouseY >= 0 && mouseY <= containerHeight) {
-                if (isVisible) {
-                    container.classList.add("hidden");
-                } else {
-                    container.classList.remove("hidden");
-                }
-                isVisible = !isVisible;
-            }
+            return mouseY >= 0 && mouseY <= containerHeight;
+        }
+
+        target.addEventListener("click", function (event) {
+            if (!inLightsArea(event)) return;
+            isVisible = !isVisible;
+            container.classList.toggle("xmas-lights-hidden", !isVisible);
+            try { localStorage.setItem(STORAGE_KEY, isVisible ? "1" : "0"); } catch (e) {}
+        });
+
+        target.addEventListener("mousemove", function (event) {
+            container.classList.toggle("xmas-lights-peek", inLightsArea(event));
+        });
+
+        target.addEventListener("mouseleave", function () {
+            container.classList.remove("xmas-lights-peek");
         });
 
     });
